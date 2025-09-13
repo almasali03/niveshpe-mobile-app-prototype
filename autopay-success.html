@@ -295,6 +295,7 @@
             color: var(--color-text-primary);
             margin-bottom: 4px;
             animation: slideInUp 0.6s ease-out 0.5s both;
+            text-align: center;
         }
 
         .success-subtitle {
@@ -436,29 +437,79 @@
             background: rgba(37, 99, 235, 0.05);
         }
 
-        /* Floating Elements */
-        .floating-element {
+        /* Industry Standard Confetti */
+        .confetti {
             position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             pointer-events: none;
-            opacity: 0.6;
+            overflow: hidden;
+            z-index: 1000;
         }
 
-        .floating-element:nth-child(1) {
-            top: 15%;
-            left: 10%;
-            animation: float 3s ease-in-out infinite;
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            opacity: 0;
+            pointer-events: none;
         }
 
-        .floating-element:nth-child(2) {
-            top: 25%;
-            right: 15%;
-            animation: float 3s ease-in-out infinite 1s;
+        .confetti-rect {
+            background: #4ecdc4;
         }
 
-        .floating-element:nth-child(3) {
-            bottom: 25%;
-            left: 15%;
-            animation: float 3s ease-in-out infinite 2s;
+        .confetti-circle {
+            background: #45b7d1;
+            border-radius: 50%;
+        }
+
+        .confetti-triangle {
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-bottom: 10px solid #96ceb4;
+            background: none;
+        }
+
+        .confetti-square {
+            background: #feca57;
+        }
+
+        .confetti-diamond {
+            background: #ff9ff3;
+            transform: rotate(45deg);
+        }
+
+        .confetti-star {
+            background: #ff6b6b;
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+        }
+
+        @keyframes confettiFall {
+            0% {
+                opacity: 1;
+                transform: translateY(-20px) translateX(0) rotate(0deg);
+            }
+            25% {
+                opacity: 1;
+                transform: translateY(25vh) translateX(calc(var(--drift, 0px) * 0.25)) rotate(90deg);
+            }
+            50% {
+                opacity: 0.8;
+                transform: translateY(50vh) translateX(calc(var(--drift, 0px) * 0.5)) rotate(180deg);
+            }
+            75% {
+                opacity: 0.4;
+                transform: translateY(75vh) translateX(calc(var(--drift, 0px) * 0.75)) rotate(270deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(100vh) translateX(var(--drift, 0px)) rotate(360deg);
+            }
         }
 
         /* Animations */
@@ -599,7 +650,8 @@
 
                     <!-- Success Content -->
                     <div class="success-content">
-
+                        <!-- Industry Standard Confetti -->
+                        <div class="confetti" id="confetti-container"></div>
 
                         <!-- Success Icon with Ripple Animation -->
                         <div class="success-icon">
@@ -616,7 +668,7 @@
 
                         <!-- Success Message -->
                         <div class="success-message">
-                            <h1 class="success-title">Yaaayyyyyy!!! 🎉</h1>
+                            <h1 class="success-title">SIP Done!</h1>
                             <p class="success-subtitle">Your AutoPay SIP has been successfully set up</p>
                         </div>
 
@@ -740,10 +792,62 @@
                 // successSound.play().catch(e => console.log('Audio play failed'));
             }
             
-            // Only ripple animation - no other celebrations
+            // Add industry-standard confetti every time page loads
+            // Trigger confetti after initial animations
+            setTimeout(() => {
+                createConfetti();
+            }, 800);
+            
+            // Additional bursts for celebration
+            setTimeout(() => createConfetti(), 1200);
+            setTimeout(() => createConfetti(), 1800);
         });
 
-
+        function createConfetti() {
+            const container = document.getElementById('confetti-container');
+            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3'];
+            const shapes = ['confetti-rect', 'confetti-circle', 'confetti-triangle', 'confetti-square', 'confetti-diamond', 'confetti-star'];
+            
+            // Create 50 confetti pieces for industry-standard effect
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = `confetti-piece ${shapes[Math.floor(Math.random() * shapes.length)]}`;
+                
+                // Set random color for non-triangle shapes
+                if (!confetti.classList.contains('confetti-triangle') && !confetti.classList.contains('confetti-star')) {
+                    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                }
+                
+                // Random size variation (8-15px)
+                const size = Math.random() * 7 + 8;
+                confetti.style.width = size + 'px';
+                confetti.style.height = size + 'px';
+                
+                // Random starting position
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.top = '-20px';
+                
+                // Random animation duration (2-4 seconds)
+                const duration = Math.random() * 2 + 2;
+                confetti.style.animation = `confettiFall ${duration}s linear forwards`;
+                
+                // Random delay (0-0.5 seconds)
+                confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                
+                // Add horizontal drift
+                const drift = (Math.random() - 0.5) * 200;
+                confetti.style.setProperty('--drift', drift + 'px');
+                
+                container.appendChild(confetti);
+                
+                // Remove confetti piece after animation
+                setTimeout(() => {
+                    if (confetti.parentNode) {
+                        confetti.remove();
+                    }
+                }, (duration + 0.5) * 1000);
+            }
+        }
 
         function createNewSIP() {
             // Add button press animation
